@@ -1,0 +1,22 @@
+{
+  "name": "advent-of-code-2019",
+  "logName": "Advent of Code 2019",
+  "version": "1.0.0",
+  "description": "My solutions for Advent of Code 2019, written in JavaScript using nodejs",
+  "main": "start.js",
+  "scripts": {
+    "start": "npm run test && node run.js",
+    "test": "npm run lint",
+    "create": "node copy-template",
+    "lint": "standard --fix"
+  },
+  "author": "John Beech",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.16.4",
+    "pre-push": "*",
+    "promise-path": "*",
+    "standard": "*",
+    "stats-lite": "*"
+  }
+}
