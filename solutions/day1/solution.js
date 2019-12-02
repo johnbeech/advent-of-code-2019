@@ -10,8 +10,18 @@ async function run () {
   await solveForSecondStar(input)
 }
 
+function calculateFuelRequiredForModule (n) {
+  return Math.floor(n / 3) - 2
+}
+
 async function solveForFirstStar (input) {
-  const solution = 'UNSOLVED'
+  const lines = input.split('\n').map(n => Number.parseInt(n)).map(n => n)
+  const fuel = lines.map(calculateFuelRequiredForModule)
+  const totalFuel = fuel.reduce((acc, item) => {
+    return acc + item
+  }, 0)
+
+  const solution = totalFuel
   report('Input:', input)
   report('Solution 1:', solution)
 }
