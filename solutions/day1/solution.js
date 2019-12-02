@@ -11,7 +11,17 @@ async function run () {
 }
 
 function calculateFuelRequiredForModule (n) {
-  return Math.floor(n / 3) - 2
+  return Math.max(0, Math.floor(n / 3) - 2)
+}
+
+function calculateFuelRequiredForModuleIncFuel (n) {
+  let additionalFuel = n
+  let totalFuel = 0
+  while (additionalFuel > 0) {
+    additionalFuel = calculateFuelRequiredForModule(additionalFuel)
+    totalFuel = totalFuel + additionalFuel
+  }
+  return totalFuel
 }
 
 async function solveForFirstStar (input) {
@@ -22,12 +32,19 @@ async function solveForFirstStar (input) {
   }, 0)
 
   const solution = totalFuel
-  report('Input:', input)
+
   report('Solution 1:', solution)
 }
 
 async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+  const lines = input.split('\n').map(n => Number.parseInt(n)).map(n => n)
+  const fuel = lines.map(calculateFuelRequiredForModuleIncFuel)
+  const totalFuel = fuel.reduce((acc, item) => {
+    return acc + item
+  }, 0)
+
+  const solution = totalFuel
+
   report('Solution 2:', solution)
 }
 
