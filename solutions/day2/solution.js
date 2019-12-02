@@ -33,7 +33,7 @@ function multiplyValues (memory, position) {
 }
 
 function endProgram (memory, position) {
-  report('Reached the end of the program at position', position)
+  // report('Reached the end of the program at position', position)
   return -1
 }
 
@@ -66,7 +66,32 @@ async function solveForFirstStar (input) {
 }
 
 async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+  let noun = -1
+  let verb = -1
+
+  const expectedResult = 19690720
+  let memory, position, result
+
+  do {
+    verb = -1
+    noun++
+    do {
+      verb++
+      memory = input.split(',').map(n => Number.parseInt(n))
+      memory[1] = noun
+      memory[2] = verb
+      position = 0
+      do {
+        position = executeProgram(memory, position)
+        result = memory[0]
+        if (result !== 1) {
+          report('Result', result, 'N', noun, 'V', verb)
+        }
+      } while (position !== -1)
+    } while (result !== expectedResult && verb < 99)
+  } while (result !== expectedResult && noun < 99)
+
+  const solution = 100 * noun + verb
   report('Solution 2:', solution)
 }
 
