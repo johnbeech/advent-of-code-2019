@@ -21,6 +21,20 @@ function mark (map, position, index) {
   map[key] = (map[key] === undefined || map[key] === index) ? index : 'X'
 }
 
+function highlight (map, position, wireIndex, stepCount) {
+  const key = `${position.x},${position.y}`
+  if (!map[key]) {
+    map[key] = {
+      x: position.x,
+      y: position.y,
+      wires: {}
+    }
+  }
+
+  map[key].wires[wireIndex] = map[key].wires[wireIndex] || []
+  map[key].wires[wireIndex].push(stepCount)
+}
+
 function parseKey (key) {
   const values = key.split(',').map(n => Number.parseInt(n))
   return { x: values[0], y: values[1] }
@@ -117,7 +131,44 @@ async function solveForFirstStar (input) {
 }
 
 async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+  const wires = input.split('\n')
+  const map = {}
+
+  wires.forEach((wireInput, index) => {
+    const instructions = wireInput.split(',').filter(n => n).map(parseInstruction)
+    report('Wire Instructions', instructions)
+
+    const position = { x: 0, y: 0 }
+    let stepCount = 0
+    highlight(map, position, 'O', stepCount)
+    instructions.forEach(instruction => {
+      const direction = directions[instruction.direction]
+      let distance = 0
+      while (distance < instruction.value) {
+        stepCount = stepCount + 1
+        position.x = position.x + direction.x
+        position.y = position.y + direction.y
+        highlight(map, position, index, stepCount)
+        distance = distance + 1
+      }
+    })
+  })
+
+  const intersections = Object.values(map)
+    .filter(x => Object.keys(x.wires).length > 1)
+    .map(x => {
+      report(x.wires)
+      x.intersectionDistance = x.wires[0][0] + x.wires[1][0]
+      return x
+    })
+    .sort((a, b) => {
+      return a.intersectionDistance - b.intersectionDistance
+    })
+
+  report('Intersections', intersections)
+
+  const solution = intersections[0].intersectionDistance
+
   report('Solution 2:', solution)
 }
 
