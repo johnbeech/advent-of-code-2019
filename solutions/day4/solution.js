@@ -31,6 +31,29 @@ function testValidPassword (passwordValue) {
   return passwordContainsDouble && passwordDigitsNeverDecrease
 }
 
+function testValidPasswordForSecondStar (passwordValue) {
+  let passwordDigitsNeverDecrease = true
+
+  const sequence = (passwordValue + '').split('').map(n => Number.parseInt(n))
+  let previousNumber; const doublesMap = {}
+  sequence.forEach(number => {
+    if (previousNumber !== undefined) {
+      if (previousNumber === number) {
+        doublesMap[number] = doublesMap[number] || 1
+        doublesMap[number]++
+      }
+      if (previousNumber > number) {
+        passwordDigitsNeverDecrease = false
+      }
+    }
+    previousNumber = number
+  })
+
+  const passwordContainsDouble = Object.values(doublesMap).filter(n => n === 2).length > 0
+
+  return passwordContainsDouble && passwordDigitsNeverDecrease
+}
+
 async function solveForFirstStar (input) {
   const [, startInput, endInput] = input.match(/(\d{6})-(\d{6})/)
   report('Start Input', startInput, 'End Input', endInput)
@@ -52,7 +75,23 @@ async function solveForFirstStar (input) {
 }
 
 async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+  const [, startInput, endInput] = input.match(/(\d{6})-(\d{6})/)
+  report('Start Input', startInput, 'End Input', endInput)
+
+  let password = startInput
+  const validPaswords = []
+  while (password <= endInput) {
+    if (testValidPasswordForSecondStar(password)) {
+      validPaswords.push(password)
+    }
+    // do something
+    password++
+  }
+
+  const solution = validPaswords.length
+  report('Valid Passwords', validPaswords)
+  report('Input:', input)
+
   report('Solution 2:', solution)
 }
 
