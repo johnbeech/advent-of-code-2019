@@ -17,6 +17,10 @@ const opcodes = {
   2: multiplyValues,
   3: saveInputToPosition,
   4: outputValue,
+  5: jumpIfTrue,
+  6: jumpIfFalse,
+  7: lessThan,
+  8: equals,
   99: endProgram
 }
 
@@ -24,7 +28,7 @@ function getParameter ({ memory, mode, parameter }) {
   return mode === IMMEDIATE ? parameter : memory[parameter]
 }
 
-function addValues ({ memory, position, mode1, mode2, mode3 }) {
+function addValues ({ memory, position, mode1, mode2 }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2] })
   const parameter3 = memory[position + 3]
@@ -32,7 +36,7 @@ function addValues ({ memory, position, mode1, mode2, mode3 }) {
   return position + 4
 }
 
-function multiplyValues ({ memory, position, mode1, mode2, mode3 }) {
+function multiplyValues ({ memory, position, mode1, mode2 }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2] })
   const parameter3 = memory[position + 3]
@@ -40,16 +44,58 @@ function multiplyValues ({ memory, position, mode1, mode2, mode3 }) {
   return position + 4
 }
 
-function saveInputToPosition ({ memory, position, inputs, mode1, mode2, mode3 }) {
+function saveInputToPosition ({ memory, position, inputs }) {
   const parameter1 = memory[position + 1]
   memory[parameter1] = inputs[0]
   return position + 2
 }
 
-function outputValue ({ memory, position, outputs, mode1, mode2, mode3 }) {
+function outputValue ({ memory, position, outputs, mode1 }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
   outputs[0] = parameter1
   return position + 2
+}
+
+function jumpIfTrue ({ memory, position, mode1, mode2 }) {
+  const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
+  const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2] })
+  if (parameter1 !== 0) {
+    return parameter2
+  }
+  return position + 3
+}
+
+function jumpIfFalse ({ memory, position, mode1, mode2 }) {
+  const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
+  const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2] })
+  if (parameter1 === 0) {
+    return parameter2
+  }
+  return position + 3
+}
+
+function lessThan ({ memory, position, mode1, mode2, mode3 }) {
+  const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
+  const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2] })
+  const parameter3 = memory[position + 3]
+  if (parameter1 < parameter2) {
+    memory[parameter3] = 1
+  } else {
+    memory[parameter3] = 0
+  }
+  return position + 4
+}
+
+function equals ({ memory, position, mode1, mode2 }) {
+  const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
+  const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2] })
+  const parameter3 = memory[position + 3]
+  if (parameter1 === parameter2) {
+    memory[parameter3] = 1
+  } else {
+    memory[parameter3] = 0
+  }
+  return position + 4
 }
 
 function endProgram ({ memory, position }) {
@@ -90,7 +136,17 @@ async function solveForFirstStar (input) {
 
 async function solveForSecondStar (input) {
   const memory = input.split(',').map(n => Number.parseInt(n))
-  const solution = memory[0]
+  const inputs = { 0: 5 }
+  const outputs = {}
+
+  let position = 0
+  do {
+    position = executeProgram({ memory, position, inputs, outputs })
+    console.log(memory.join(','))
+  }
+  while (position !== -1)
+
+  const solution = outputs
   report('Solution 2:', solution)
 }
 
