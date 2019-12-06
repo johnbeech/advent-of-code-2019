@@ -6,8 +6,8 @@ const report = (...messages) => console.log(`[${require(fromHere('../../package.
 async function run () {
   const input = (await read(fromHere('input.txt'), 'utf8')).trim()
 
-  await solveForFirstStar(input)
-  await solveForSecondStar(input)
+  const orbitMap = await solveForFirstStar(input)
+  await solveForSecondStar(orbitMap)
 }
 
 async function solveForFirstStar (input) {
@@ -15,8 +15,12 @@ async function solveForFirstStar (input) {
   const orbits = input.split('\n').map(n => n.trim().split(separator))
   const orbitMap = orbits.reduce((acc, orbit) => {
     const [a, b] = orbit
-    acc[a] = acc[a] || {}
-    acc[b] = acc[b] || {}
+    acc[a] = acc[a] || {
+      id: a
+    }
+    acc[b] = acc[b] || {
+      id: b
+    }
     acc[a][b] = acc[b]
     acc[b].parent = acc[a]
     return acc
@@ -34,10 +38,33 @@ async function solveForFirstStar (input) {
 
   const solution = orbitCount
   report('Solution 1:', solution)
+
+  return orbitMap
 }
 
-async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+function findParents (node) {
+  const parents = []
+  let parent = node.parent
+  while (parent) {
+    parents.push(parent)
+    parent = parent.parent
+  }
+  return parents
+}
+
+async function solveForSecondStar (orbitMap) {
+  const YOU = orbitMap.YOU
+  const SAN = orbitMap.SAN
+
+  const youParents = findParents(YOU)
+  const sanParents = findParents(SAN)
+  const difference = youParents.filter(n => !sanParents.includes(n))
+
+  report(youParents.map(n => n.id))
+  report(sanParents.map(n => n.id))
+  report(difference.map(n => n.id))
+
+  const solution = difference.length + 1
   report('Solution 2:', solution)
 }
 
