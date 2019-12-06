@@ -49,7 +49,7 @@ function findParents (node) {
     parents.push(parent)
     parent = parent.parent
   }
-  return parents
+  return parents.reverse()
 }
 
 async function solveForSecondStar (orbitMap) {
@@ -58,13 +58,13 @@ async function solveForSecondStar (orbitMap) {
 
   const youParents = findParents(YOU)
   const sanParents = findParents(SAN)
-  const difference = youParents.filter(n => !sanParents.includes(n))
+  const diff1 = youParents.filter(n => !sanParents.includes(n))
+  const diff2 = sanParents.filter(n => !youParents.includes(n))
+  const difference = diff1.concat(diff2)
 
-  report(youParents.map(n => n.id))
-  report(sanParents.map(n => n.id))
   report(difference.map(n => n.id))
 
-  const solution = difference.length + 1
+  const solution = difference.length
   report('Solution 2:', solution)
 }
 
