@@ -56,7 +56,7 @@ function computeMaxSignal (instructions, phases) {
   return { maxSignal, phaseSettings: maxPhaseSettings }
 }
 
-async function solveForFirstStar (instructions) {
+function calculatePhaseSettings () {
   const totalCombinations = Math.pow(5, 5)
   const phases = []
   while (phases.length < totalCombinations) {
@@ -66,6 +66,17 @@ async function solveForFirstStar (instructions) {
     }
     phases.push(phaseSettings)
   }
+
+  function validPhaseSettings (settings) {
+    const set = new Set(settings)
+    return set.size === 5
+  }
+
+  return phases.filter(validPhaseSettings)
+}
+
+async function solveForFirstStar (instructions) {
+  const phases = calculatePhaseSettings()
 
   report('Phase combination count', phases.length)
 
