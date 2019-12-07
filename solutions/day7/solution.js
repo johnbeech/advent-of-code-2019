@@ -57,8 +57,8 @@ function computeMaxSignal (instructions, phases) {
 }
 
 async function solveForFirstStar (instructions) {
-  const totalCombinations = 0 // Math.pow(5, 5)
-  const phases = [[0, 1, 1, 1, 1]]
+  const totalCombinations = Math.pow(5, 5)
+  const phases = []
   while (phases.length < totalCombinations) {
     const phaseSettings = phases.length.toString(5).split('').map(n => Number.parseInt(n))
     while (phaseSettings.length < 5) {
