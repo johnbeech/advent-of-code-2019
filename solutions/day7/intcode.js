@@ -125,9 +125,11 @@ async function compute (instructions, inputs = [], outputSignal) {
   let position = 0
   if (position !== -1) {
     setTimeout(() => {
+      report('Execute program', position, inputs, outputs)
       position = executeProgram({ memory, position, inputs, outputs, outputSignal })
     }, 0)
   } else {
+    report('Program complete', position, inputs, outputs)
     programComplete({
       memory,
       inputs,

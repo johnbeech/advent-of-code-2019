@@ -6,15 +6,17 @@ const compute = require('./intcode')
 
 async function run () {
   const input = (await read(fromHere('input.txt'), 'utf8')).trim()
-  const example = '3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5'
 
   await solveForExamples()
   await solveForFirstStar(input)
+
+  const example = '3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5'
   await solveForSecondStar(example, [[9, 8, 7, 6, 5]])
 }
 
 async function solveForExamples () {
   const input = (await read(fromHere('examples.txt'), 'utf8')).trim()
+  report('Read example input:', input)
   const lines = input.split('\n')
   const tests = lines.map(line => {
     let [expected, phaseSettings, instructions] = line.split('::')
@@ -27,12 +29,18 @@ async function solveForExamples () {
     }
   })
 
-  return Promise.all(tests.map(async (test, index) => {
-    const phases = [test.phaseSettings.concat([])]
-    const { maxSignal } = await computeMaxSignal(test.instructions, phases)
-    const passOrFail = test.expected === maxSignal ? '✔' : '❌'
-    report('Test', index, 'Expected', test.expected, 'using phase setting', test.phaseSettings, 'Result:', maxSignal, passOrFail, ' Instructions:', test.instructions)
+  report('Example tests', tests)
+
+  await Promise.all(tests.map((test, index) => {
+    return async () => {
+      const phases = [test.phaseSettings.concat([])]
+      const { maxSignal } = await computeMaxSignal(test.instructions, phases)
+      const passOrFail = test.expected === maxSignal ? '✔' : '❌'
+      report('Test', index, 'Expected', test.expected, 'using phase setting', test.phaseSettings, 'Result:', maxSignal, passOrFail, ' Instructions:', test.instructions)
+    }
   }))
+
+  report('Solved for examples')
 }
 
 async function computeMaxSignal (instructions, phases) {
