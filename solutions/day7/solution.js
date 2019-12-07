@@ -87,9 +87,7 @@ async function solveForFirstStar (instructions) {
 
   const { maxSignal, phaseSettings } = await computeMaxSignal(instructions, phases)
 
-  const incorrectAnswer = 14955788
-  const passOrFail = incorrectAnswer !== maxSignal ? '?' : '❌'
-  report('Solution 1', 'Expected', '(unknown)', 'used phase setting', phaseSettings, 'Result:', maxSignal, passOrFail)
+  report('Solution 1', 'used phase setting', phaseSettings, 'Answer:', maxSignal)
 }
 
 async function computeMaxFeedbackSignal (instructions, phases) {
@@ -165,10 +163,7 @@ async function solveForSecondStar (instructions, phases) {
   report('Phase combination count', phases.length)
 
   const { maxSignal, phaseSettings } = await computeMaxFeedbackSignal(instructions, phases)
-  report('Solution 2', 'used phase setting', phaseSettings, 'Result:', maxSignal)
-
-  const solution = 'UNSOLVED'
-  report('Solution 2:', solution)
+  report('Solution 2', 'used phase setting', phaseSettings, 'Answer:', maxSignal)
 }
 
 run()
