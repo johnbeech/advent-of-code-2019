@@ -1,3 +1,6 @@
+const path = require('path')
+const { position } = require('promise-path')
+const fromHere = position(__dirname)
 const report = (...messages) => console.log(`[${require(fromHere('../../package.json')).logName} / ${__dirname.split(path.sep).pop()} / intcode]`, ...messages)
 
 const IMMEDIATE = 1
@@ -42,7 +45,7 @@ function saveInputToPosition ({ memory, position, inputs }) {
 
 function outputValue ({ memory, position, outputs, mode1 }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
-  outputs[0] = parameter1
+  outputs.push(parameter1)
   return position + 2
 }
 
@@ -107,15 +110,13 @@ function executeProgram ({ memory, position, inputs, outputs }) {
   }
 }
 
-function compute (instructions, inputs) {
+function compute (instructions, inputs = []) {
   const memory = instructions.split(',').map(n => Number.parseInt(n))
-  const inputs = []
-  const outputs = {}
+  const outputs = []
 
   let position = 0
   do {
     position = executeProgram({ memory, position, inputs, outputs })
-    console.log(memory.join(','))
   }
   while (position !== -1)
 
