@@ -43,9 +43,10 @@ function saveInputToPosition ({ memory, position, inputs }) {
   return position + 2
 }
 
-function outputValue ({ memory, position, outputs, mode1 }) {
+function outputValue ({ memory, position, outputs, mode1, outputSignal }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
   outputs.push(parameter1)
+  outputSignal(parameter1)
   return position + 2
 }
 
@@ -95,7 +96,7 @@ function endProgram ({ memory, position }) {
   return -1
 }
 
-function executeProgram ({ memory, position, inputs, outputs }) {
+function executeProgram ({ memory, position, inputs, outputs, callback }) {
   const instruction = (memory[position] + '').split('')
   const opcode = Number.parseInt([instruction.pop(), instruction.pop()].reverse().join(''))
   const mode1 = Number.parseInt(instruction.pop() || 0)
@@ -110,22 +111,31 @@ function executeProgram ({ memory, position, inputs, outputs }) {
   }
 }
 
-function compute (instructions, inputs = []) {
+async function compute (instructions, inputs = [], outputSignal) {
   const memory = instructions.split(',').map(n => Number.parseInt(n))
   const outputs = []
+  outputSignal = outputSignal || function () {}
   // report('Computing', memory, inputs)
 
-  let position = 0
-  do {
-    position = executeProgram({ memory, position, inputs, outputs })
-  }
-  while (position !== -1)
+  let programComplete
+  const promise = new Promise((resolve, reject) => {
+    programComplete = resolve
+  })
 
-  return {
-    memory,
-    inputs,
-    outputs
+  let position = 0
+  if (position !== -1) {
+    setTimeout(() => {
+      position = executeProgram({ memory, position, inputs, outputs, outputSignal })
+    }, 0)
+  } else {
+    programComplete({
+      memory,
+      inputs,
+      outputs
+    })
   }
+
+  return promise
 }
 
 module.exports = compute
