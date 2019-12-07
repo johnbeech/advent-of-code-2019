@@ -113,6 +113,7 @@ function executeProgram ({ memory, position, inputs, outputs }) {
 function compute (instructions, inputs = []) {
   const memory = instructions.split(',').map(n => Number.parseInt(n))
   const outputs = []
+  // report('Computing', memory, inputs)
 
   let position = 0
   do {
