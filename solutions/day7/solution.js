@@ -9,9 +9,7 @@ async function run () {
 
   await solveForExamples()
   await solveForFirstStar(input)
-
-  const example = '3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5'
-  await solveForSecondStar(example, [[9, 8, 7, 6, 5]])
+  await solveForSecondStar(input)
 }
 
 async function solveForExamples () {
@@ -31,13 +29,11 @@ async function solveForExamples () {
 
   report('Example tests', tests)
 
-  await Promise.all(tests.map((test, index) => {
-    return async () => {
-      const phases = [test.phaseSettings.concat([])]
-      const { maxSignal } = await computeMaxSignal(test.instructions, phases)
-      const passOrFail = test.expected === maxSignal ? '✔' : '❌'
-      report('Test', index, 'Expected', test.expected, 'using phase setting', test.phaseSettings, 'Result:', maxSignal, passOrFail, ' Instructions:', test.instructions)
-    }
+  await Promise.all(tests.map(async (test, index) => {
+    const phases = [test.phaseSettings.concat([])]
+    const { maxSignal } = await computeMaxSignal(test.instructions, phases)
+    const passOrFail = test.expected === maxSignal ? '✔' : '❌'
+    report('Test', index, 'Expected', test.expected, 'using phase setting', test.phaseSettings, 'Result:', maxSignal, passOrFail, ' Instructions:', test.instructions)
   }))
 
   report('Solved for examples')
@@ -99,63 +95,67 @@ async function solveForFirstStar (instructions) {
 async function computeMaxFeedbackSignal (instructions, phases) {
   let maxSignal = 0
   let maxPhaseSettings = []
-
-  const a = {
-    phase: phases[0],
-    memory: instructions,
-    outputs: []
-  }
-  const b = {
-    phase: phases[1],
-    memory: instructions,
-    outputs: []
-  }
-  const c = {
-    phase: phases[2],
-    memory: instructions,
-    outputs: []
-  }
-  const d = {
-    phase: phases[3],
-    memory: instructions,
-    outputs: []
-  }
-  const e = {
-    phase: phases[4],
-    memory: instructions,
-    outputs: []
-  }
-
-  a.inputs = e.outputs
-  b.inputs = a.outputs
-  c.inputs = b.outputs
-  d.inputs = c.outputs
-  e.inputs = d.outputs
-
-  e.outputs.push(a.phase, 0)
-  a.outputs.push(b.phase)
-  b.outputs.push(c.phase)
-  c.outputs.push(d.phase)
-  d.outputs.push(e.phase)
-
-  const amplifiers = [
-    compute(instructions, a.inputs),
-    compute(instructions, b.inputs),
-    compute(instructions, c.inputs),
-    compute(instructions, d.inputs),
-    compute(instructions, e.inputs, outputE)
-  ]
+  let phaseSettings
 
   function outputE (signal) {
-    report('Signal at E', signal)
     if (signal > maxSignal) {
-      report(phases, 'New max found', signal, '>', maxSignal)
+      report(phaseSettings, 'New max found', signal, '>', maxSignal)
       maxSignal = signal
-      maxPhaseSettings = phases
+      maxPhaseSettings = phaseSettings
     }
   }
 
-  await Promise.all(amplifiers)
+  while (phases.length > 0) {
+    phaseSettings = phases.pop()
+
+    const a = {
+      phase: phaseSettings[0],
+      memory: instructions,
+      outputs: []
+    }
+    const b = {
+      phase: phaseSettings[1],
+      memory: instructions,
+      outputs: []
+    }
+    const c = {
+      phase: phaseSettings[2],
+      memory: instructions,
+      outputs: []
+    }
+    const d = {
+      phase: phaseSettings[3],
+      memory: instructions,
+      outputs: []
+    }
+    const e = {
+      phase: phaseSettings[4],
+      memory: instructions,
+      outputs: []
+    }
+
+    a.inputs = e.outputs
+    b.inputs = a.outputs
+    c.inputs = b.outputs
+    d.inputs = c.outputs
+    e.inputs = d.outputs
+
+    e.outputs.push(a.phase, 0)
+    a.outputs.push(b.phase)
+    b.outputs.push(c.phase)
+    c.outputs.push(d.phase)
+    d.outputs.push(e.phase)
+
+    const amplifiers = [
+      compute(instructions, a.inputs, a.outputs),
+      compute(instructions, b.inputs, b.outputs),
+      compute(instructions, c.inputs, c.outputs),
+      compute(instructions, d.inputs, d.outputs),
+      compute(instructions, e.inputs, e.outputs, outputE, 'E')
+    ]
+
+    await Promise.all(amplifiers)
+  }
 
   return { maxSignal, phaseSettings: maxPhaseSettings }
 }
@@ -165,7 +165,7 @@ async function solveForSecondStar (instructions, phases) {
   report('Phase combination count', phases.length)
 
   const { maxSignal, phaseSettings } = await computeMaxFeedbackSignal(instructions, phases)
-  report('Solution 1', 'used phase setting', phaseSettings, 'Result:', maxSignal)
+  report('Solution 2', 'used phase setting', phaseSettings, 'Result:', maxSignal)
 
   const solution = 'UNSOLVED'
   report('Solution 2:', solution)

@@ -37,15 +37,23 @@ function multiplyValues ({ memory, position, mode1, mode2 }) {
   return position + 4
 }
 
-function saveInputToPosition ({ memory, position, inputs }) {
+function saveInputToPosition ({ id, memory, position, inputs, outputs }) {
   const parameter1 = memory[position + 1]
-  memory[parameter1] = inputs.shift() || 0
-  return position + 2
+  const input = inputs.shift()
+  if (input !== undefined) {
+    // report(id, 'Read input', input, inputs, outputs)
+    memory[parameter1] = input
+    return position + 2
+  } else {
+    // report(id, 'Waiting for input', inputs, outputs)
+    return position
+  }
 }
 
-function outputValue ({ memory, position, outputs, mode1, outputSignal }) {
+function outputValue ({ id, memory, position, inputs, outputs, mode1, outputSignal }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1] })
   outputs.push(parameter1)
+  // report(id, 'Output value', parameter1, inputs, outputs)
   outputSignal(parameter1)
   return position + 2
 }
@@ -92,11 +100,11 @@ function equals ({ memory, position, mode1, mode2 }) {
   return position + 4
 }
 
-function endProgram ({ memory, position }) {
+function endProgram () {
   return -1
 }
 
-function executeProgram ({ memory, position, inputs, outputs, callback }) {
+function executeProgram ({ id, memory, position, inputs, outputs, outputSignal }) {
   const instruction = (memory[position] + '').split('')
   const opcode = Number.parseInt([instruction.pop(), instruction.pop()].reverse().join(''))
   const mode1 = Number.parseInt(instruction.pop() || 0)
@@ -104,38 +112,43 @@ function executeProgram ({ memory, position, inputs, outputs, callback }) {
   const mode3 = Number.parseInt(instruction.pop() || 0)
 
   try {
-    return opcodes[opcode]({ memory, position, inputs, outputs, mode1, mode2, mode3 })
+    return opcodes[opcode]({ id, memory, position, inputs, outputs, mode1, mode2, mode3, outputSignal })
   } catch (ex) {
     report('Unable to execute instruction at', position, `(Opcode: ${opcode}, Modes: 1:${mode1}, 2:${mode2}, 3:${mode3})`, `[${memory[position]}]`, 'memory dump:', memory.join(' '))
+    report(ex.message)
     return -1
   }
 }
 
-async function compute (instructions, inputs = [], outputSignal) {
+async function compute (instructions, inputs = [], outputs = [], outputSignal, id) {
   const memory = instructions.split(',').map(n => Number.parseInt(n))
-  const outputs = []
   outputSignal = outputSignal || function () {}
-  // report('Computing', memory, inputs)
 
   let programComplete
   const promise = new Promise((resolve, reject) => {
     programComplete = resolve
   })
 
-  let position = 0
-  if (position !== -1) {
-    setTimeout(() => {
-      report('Execute program', position, inputs, outputs)
-      position = executeProgram({ memory, position, inputs, outputs, outputSignal })
-    }, 0)
-  } else {
-    report('Program complete', position, inputs, outputs)
-    programComplete({
-      memory,
-      inputs,
-      outputs
-    })
+  function stepProgram () {
+    do {
+      position = newPosition
+      newPosition = executeProgram({ id, memory, position, inputs, outputs, outputSignal })
+      if (newPosition === position) {
+        setTimeout(stepProgram, 0)
+      } else if (newPosition === -1) {
+        programComplete({
+          memory,
+          inputs,
+          outputs,
+          position
+        })
+        return
+      }
+    } while (newPosition !== position)
   }
+
+  let position = 0; let newPosition = 0
+  stepProgram()
 
   return promise
 }
