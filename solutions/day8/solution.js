@@ -6,12 +6,13 @@ const report = (...messages) => console.log(`[${require(fromHere('../../package.
 async function run () {
   const input = (await read(fromHere('input.txt'), 'utf8')).trim()
 
-  await solveForFirstStar(input)
-  await solveForSecondStar(input)
+  const image = await solveForFirstStar(input)
+  await solveForSecondStar(image)
 }
 
 function decodeImage (pixels, dimensions) {
   const layers = []
+  const render = []
   const r = [].concat(pixels).reverse()
 
   const pixelsPerLayer = dimensions.width * dimensions.height
@@ -28,7 +29,19 @@ function decodeImage (pixels, dimensions) {
     layers[layerNumber] = layer
   }
 
-  return { layers }
+  while (render.length < pixelsPerLayer) {
+    const pixelOffset = (pixelsPerLayer - render.length - 1)
+    const renderedPixel = layers.reduce((acc, layer) => {
+      const pixel = layer.pixels[pixelOffset]
+      if (acc < 2) {
+        return acc
+      }
+      return pixel
+    }, 2)
+    render.push(renderedPixel)
+  }
+
+  return { layers, render, dimensions }
 }
 
 async function solveForFirstStar (input) {
@@ -52,10 +65,25 @@ async function solveForFirstStar (input) {
 
   const solution = zerolestLayer.ones * zerolestLayer.twos
   report('Solution 1:', solution)
+
+  return image
 }
 
-async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+async function solveForSecondStar (image) {
+  const r = [].concat(image.render)
+  const lines = []
+  let line = []
+  while (r.length > 0) {
+    if (r.length % image.dimensions.width === 0) {
+      lines.push(line)
+      line = []
+    }
+    line.push(r.pop() === '1' ? '▮' : '.')
+  }
+  lines.push(line)
+
+  report('Pixels', image.render)
+  const solution = lines.map(line => line.join('')).join('\n')
   report('Solution 2:', solution)
 }
 
