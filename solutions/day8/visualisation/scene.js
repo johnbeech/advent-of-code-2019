@@ -17,7 +17,7 @@ function addCube (scene) {
   const material = new THREE.MeshPhongMaterial({
     color,
     opacity: 0.5,
-    transparent: true,
+    transparent: true
   })
   var cube = new THREE.Mesh(geometry, material)
   scene.add(cube)
@@ -36,7 +36,7 @@ function init () {
 
   //
 
-  camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000)
+  camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000)
   camera.position.set(400, 400, 400)
 
   //
