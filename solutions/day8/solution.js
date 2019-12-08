@@ -1,5 +1,5 @@
 const path = require('path')
-const { read, position } = require('promise-path')
+const { read, write, position } = require('promise-path')
 const fromHere = position(__dirname)
 const report = (...messages) => console.log(`[${require(fromHere('../../package.json')).logName} / ${__dirname.split(path.sep).pop()}]`, ...messages)
 
@@ -8,6 +8,7 @@ async function run () {
 
   const image = await solveForFirstStar(input)
   await solveForSecondStar(image)
+  await write(fromHere('./visualisation/image.json'), JSON.stringify(image, null, 2), 'utf8')
 }
 
 function decodeImage (pixels, dimensions) {
@@ -18,13 +19,13 @@ function decodeImage (pixels, dimensions) {
   const pixelsPerLayer = dimensions.width * dimensions.height
 
   while (r.length > 0) {
-    const pixel = r.pop()
+    const pixel = Number.parseInt(r.pop())
     const layerNumber = Math.ceil((pixels.length - r.length) / pixelsPerLayer)
     const layer = layers[layerNumber] || { pixels: [], zeros: 0, ones: 0, twos: 0 }
     layer.pixels.push(pixel)
-    layer.zeros = pixel === '0' ? layer.zeros + 1 : layer.zeros
-    layer.ones = pixel === '1' ? layer.ones + 1 : layer.ones
-    layer.twos = pixel === '2' ? layer.twos + 1 : layer.twos
+    layer.zeros = pixel === 0 ? layer.zeros + 1 : layer.zeros
+    layer.ones = pixel === 1 ? layer.ones + 1 : layer.ones
+    layer.twos = pixel === 2 ? layer.twos + 1 : layer.twos
 
     layers[layerNumber] = layer
   }
@@ -78,7 +79,7 @@ async function solveForSecondStar (image) {
       lines.push(line)
       line = []
     }
-    line.push(r.pop() === '1' ? '▮' : '.')
+    line.push(r.pop() === 1 ? '▮' : ' ')
   }
   lines.push(line)
 
