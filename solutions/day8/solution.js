@@ -8,7 +8,7 @@ async function run () {
 
   const image = await solveForFirstStar(input)
   await solveForSecondStar(image)
-  await write(fromHere('./visualisation/image.json'), JSON.stringify(image, null, 2), 'utf8')
+  await write(fromHere('./visualisation/image.json'), JSON.stringify(image), 'utf8')
 }
 
 function decodeImage (pixels, dimensions) {

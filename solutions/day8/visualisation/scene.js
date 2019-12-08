@@ -11,17 +11,54 @@ animate()
 
 //
 
-function addCube (scene) {
-  var geometry = new THREE.BoxGeometry(10, 10, 10)
-  const color = 0x000000
+function addCube (scene, x=0, y=0, z=0, pixel=0) {
+  if (pixel === 2)
+    return
+
+  var geometry = new THREE.BoxGeometry(1, 1, 1)
+  let color = pixel === 1 ? 0xffffff : 0x000000
   const material = new THREE.MeshPhongMaterial({
     color,
-    opacity: 0.5,
+    opacity: (100 - Math.abs(y)) / 100,
     transparent: true
   })
   var cube = new THREE.Mesh(geometry, material)
+  cube.position.set(x, y, z)
   scene.add(cube)
   return cube
+}
+
+
+function loadImageData(parent) {
+  var loader = new THREE.FileLoader()
+  loader.load('./image.json', function ( data ) {
+    const image = JSON.parse(data)
+  	console.log('Loaded image data:', image)
+
+    const { dimensions } = image
+
+    renderLayer(parent, 0, image.render, dimensions)
+    image.layers.forEach((layer, index) => {
+      if (layer) {
+        renderLayer(parent, index - dimensions.layers, layer.pixels, dimensions)
+      }
+    })
+
+    parent.position.set(-dimensions.width / 2 + 0.5, 0, -dimensions.height / 2 + 0.5)
+  })
+}
+
+function renderLayer(parent, layerNumber, pixels, dimensions) {
+  const area = [].concat(pixels)
+  const pixelsPerLayer = dimensions.width * dimensions.height
+  while (area.length > 0) {
+    let i = pixelsPerLayer - area.length
+    let x = i % dimensions.width
+    let y = 0.5 + (1 * layerNumber)
+    let z = Math.floor(i / dimensions.width)
+    let pixel = area.pop()
+    let cube = addCube(parent, x, y, z, pixel)
+  }
 }
 
 //
@@ -37,7 +74,7 @@ function init () {
   //
 
   camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 5000)
-  camera.position.set(400, 400, 400)
+  camera.position.set(40, 40, 40)
 
   //
 
@@ -55,13 +92,12 @@ function init () {
 
   //
 
-  var helper = new THREE.GridHelper(250, 10)
-  // helper.rotation.x = Math.PI / 2
-  group.add(helper)
+  var helper = new THREE.GridHelper(25, 10)
+  scene.add(helper)
 
   //
 
-  addCube(scene)
+  loadImageData(group)
 
   //
 
