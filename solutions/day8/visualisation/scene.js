@@ -11,12 +11,11 @@ animate()
 
 //
 
-function addCube (scene, x=0, y=0, z=0, pixel=0) {
-  if (pixel === 2)
-    return
+function addCube (scene, x = 0, y = 0, z = 0, pixel = 0) {
+  if (pixel === 2) { return }
 
   var geometry = new THREE.BoxGeometry(1, 1, 1)
-  let color = pixel === 1 ? 0xffffff : 0x000000
+  const color = pixel === 1 ? 0xffffff : 0x000000
   const material = new THREE.MeshPhongMaterial({
     color,
     opacity: (100 - Math.abs(y)) / 100,
@@ -28,12 +27,11 @@ function addCube (scene, x=0, y=0, z=0, pixel=0) {
   return cube
 }
 
-
-function loadImageData(parent) {
+function loadImageData (parent) {
   var loader = new THREE.FileLoader()
-  loader.load('./image.json', function ( data ) {
+  loader.load('./image.json', function (data) {
     const image = JSON.parse(data)
-  	console.log('Loaded image data:', image)
+    console.log('Loaded image data:', image)
 
     const { dimensions } = image
 
@@ -44,20 +42,20 @@ function loadImageData(parent) {
       }
     })
 
-    parent.position.set(-dimensions.width / 2 + 0.5, 0, -dimensions.height / 2 + 0.5)
+    parent.position.set(-dimensions.width / 2 + 0.5, 10, -dimensions.height / 2 + 0.5)
   })
 }
 
-function renderLayer(parent, layerNumber, pixels, dimensions) {
+function renderLayer (parent, layerNumber, pixels, dimensions) {
   const area = [].concat(pixels)
   const pixelsPerLayer = dimensions.width * dimensions.height
   while (area.length > 0) {
-    let i = pixelsPerLayer - area.length
-    let x = i % dimensions.width
-    let y = 0.5 + (1 * layerNumber)
-    let z = Math.floor(i / dimensions.width)
-    let pixel = area.pop()
-    let cube = addCube(parent, x, y, z, pixel)
+    const i = pixelsPerLayer - area.length
+    const x = i % dimensions.width
+    const y = 0.5 + (1 * layerNumber)
+    const z = Math.floor(i / dimensions.width)
+    const pixel = area.pop()
+    addCube(parent, x, y, z, pixel)
   }
 }
 
