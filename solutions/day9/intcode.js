@@ -19,20 +19,20 @@ const opcodes = {
   99: endProgram
 }
 
-/*
+// /*
 const opcodeNames = {
-  1: 'add',
-  2: 'multiply',
-  3: 'input',
-  4: 'output',
-  5: 'jumpIfTrue',
-  6: 'jumpIfFalse',
-  7: 'lessThan',
-  8: 'equals',
-  9: 'modifyBase',
-  99: 'endProgram'
+  1: '+',
+  2: 'x',
+  3: 'i',
+  4: 'o',
+  5: 't',
+  6: 'f',
+  7: '<',
+  8: '=',
+  9: 'b',
+  99: '.'
 }
-*/
+// */
 
 function getParameter ({ memory, mode, parameter, base }) {
   // report('Mode:', mode, 'Parameter:', parameter, 'Position:', memory[parameter] || 0, 'Immediate:', parameter, 'Relative:', memory[base.position + parameter] || 0)
@@ -149,7 +149,7 @@ function executeProgram ({ id, memory, position, inputs, outputs, outputSignal, 
   const mode3 = Number.parseInt(instruction.pop() || 0)
 
   try {
-    // report('Opcode', opcode, `[${opcodeNames[opcode]}]`, 'at', position, 'Modes:', mode1, mode2, mode3, 'Memory:', memory.join(', '), 'Keys:', Object.keys(memory).join(', '))
+    report('Opcode', opcode, `[${opcodeNames[opcode]}]`, 'at', position, 'Modes:', mode1, mode2, mode3, 'Memory:', memory.slice(position, position + 4).join(', '))
     return opcodes[opcode]({ id, memory, position, inputs, outputs, mode1, mode2, mode3, outputSignal, base })
   } catch (ex) {
     report('Unable to execute instruction at', position, `(Opcode: ${opcode}, Modes: 1:${mode1}, 2:${mode2}, 3:${mode3})`, `[${memory[position]}]`, 'memory dump:', memory.join(' '))
@@ -177,6 +177,7 @@ async function compute (instructions, inputs = [], outputs = [], outputSignal, i
       if (newPosition === position) {
         setTimeout(stepProgram, 0)
       } else if (newPosition === -1) {
+        report('Program complete at', newPosition)
         programComplete({
           memory,
           inputs,
