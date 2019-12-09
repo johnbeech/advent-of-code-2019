@@ -29,24 +29,24 @@ function getParameter ({ memory, mode, parameter, base }) {
   }
 }
 
-function addValues ({ memory, position, mode1, mode2, base }) {
+function addValues ({ memory, position, mode1, mode2, mode3, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = memory[position + 3]
+  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
   memory[parameter3] = parameter1 + parameter2
   return position + 4
 }
 
-function multiplyValues ({ memory, position, mode1, mode2, base }) {
+function multiplyValues ({ memory, position, mode1, mode2, mode3, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = memory[position + 3]
+  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
   memory[parameter3] = parameter1 * parameter2
   return position + 4
 }
 
-function saveInputToPosition ({ id, memory, position, inputs, outputs }) {
-  const parameter1 = memory[position + 1]
+function saveInputToPosition ({ id, memory, position, inputs, outputs, mode1, base }) {
+  const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const input = inputs.shift()
   if (input !== undefined) {
     // report(id, 'Read input', input, inputs, outputs)
@@ -61,7 +61,7 @@ function saveInputToPosition ({ id, memory, position, inputs, outputs }) {
 function outputValue ({ id, memory, position, inputs, outputs, mode1, outputSignal, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   outputs.push(parameter1)
-  // report(id, 'Output value', parameter1, inputs, outputs)
+  report(id, 'Output value', parameter1, inputs, outputs)
   outputSignal(parameter1)
   return position + 2
 }
@@ -87,7 +87,7 @@ function jumpIfFalse ({ memory, position, mode1, mode2, base }) {
 function lessThan ({ memory, position, mode1, mode2, mode3, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = memory[position + 3]
+  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
   if (parameter1 < parameter2) {
     memory[parameter3] = 1
   } else {
@@ -96,10 +96,10 @@ function lessThan ({ memory, position, mode1, mode2, mode3, base }) {
   return position + 4
 }
 
-function equals ({ memory, position, mode1, mode2, base }) {
+function equals ({ memory, position, mode1, mode2, mode3, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = memory[position + 3]
+  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
   if (parameter1 === parameter2) {
     memory[parameter3] = 1
   } else {

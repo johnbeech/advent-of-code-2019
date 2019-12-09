@@ -6,14 +6,14 @@ const report = (...messages) => console.log(`[${require(fromHere('../../package.
 const compute = require('./intcode')
 
 async function run () {
-  const input = (await read(fromHere('input.txt'), 'utf8')).trim()
+  const input = (await read(fromHere('example.txt'), 'utf8')).trim()
 
   await solveForFirstStar(input)
   await solveForSecondStar(input)
 }
 
 async function solveForFirstStar (input) {
-  const boost = await compute(input, [1])
+  const boost = await compute(input, [])
 
   const solution = boost.outputs
   report('Input:', input)
