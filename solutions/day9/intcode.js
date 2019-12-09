@@ -19,7 +19,7 @@ const opcodes = {
   99: endProgram
 }
 
-// /*
+/*
 const opcodeNames = {
   1: '+',
   2: 'x',
@@ -159,7 +159,7 @@ function executeProgram ({ id, memory, position, inputs, outputs, outputSignal, 
   const mode3 = Number.parseInt(instruction.pop() || 0)
 
   try {
-    report('Opcode', opcode, `[${opcodeNames[opcode]}]`, 'at', position, 'Modes:', mode1, mode2, mode3, 'Memory:', memory.slice(position, position + 4).join(', '), 'Base:', base.position)
+    // report('Opcode', opcode, `[${opcodeNames[opcode]}]`, 'at', position, 'Modes:', mode1, mode2, mode3, 'Memory:', memory.slice(position, position + 4).join(', '), 'Base:', base.position)
     return opcodes[opcode]({ id, memory, position, inputs, outputs, mode1, mode2, mode3, outputSignal, base })
   } catch (ex) {
     report('Unable to execute instruction at', position, `(Opcode: ${opcode}, Modes: 1:${mode1}, 2:${mode2}, 3:${mode3})`, `[${memory[position]}]`, 'memory dump:', memory.join(' '))
@@ -187,7 +187,7 @@ async function compute (instructions, inputs = [], outputs = [], outputSignal, i
       if (newPosition === position) {
         setTimeout(stepProgram, 0)
       } else if (newPosition === -1) {
-        report('Program complete at', newPosition)
+        // report('Program complete at', newPosition)
         programComplete({
           memory,
           inputs,

@@ -25,14 +25,13 @@ async function solveForTests () {
 
 async function solveForFirstStar (input) {
   const boost = await compute(input, [1])
-
   const solution = boost.outputs
-  report(boost)
   report('Solution 1:', solution)
 }
 
 async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+  const boost = await compute(input, [2])
+  const solution = boost.outputs
   report('Solution 2:', solution)
 }
 
