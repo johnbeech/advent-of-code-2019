@@ -19,34 +19,56 @@ const opcodes = {
   99: endProgram
 }
 
+/*
+const opcodeNames = {
+  1: 'add',
+  2: 'multiply',
+  3: 'input',
+  4: 'output',
+  5: 'jumpIfTrue',
+  6: 'jumpIfFalse',
+  7: 'lessThan',
+  8: 'equals',
+  9: 'modifyBase',
+  99: 'endProgram'
+}
+*/
+
 function getParameter ({ memory, mode, parameter, base }) {
+  // report('Mode:', mode, 'Parameter:', parameter, 'Position:', memory[parameter] || 0, 'Immediate:', parameter, 'Relative:', memory[base.position + parameter] || 0)
   if (mode === IMMEDIATE) {
+    // report('Immediate', parameter)
     return parameter
   } else if (mode === RELATIVE) {
-    return memory[base.position + parameter]
+    // report('Relative', memory[base.position + parameter] || 0)
+    return memory[base.position + parameter] || 0
   } else {
-    return memory[parameter]
+    if (parameter < 0) {
+      throw new Error('Accessed memory location cannot be negative: ' + parameter)
+    }
+    // report('Position', memory[parameter] || 0)
+    return memory[parameter] || 0
   }
 }
 
-function addValues ({ memory, position, mode1, mode2, mode3, base }) {
+function addValues ({ memory, position, mode1, mode2, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
+  const parameter3 = memory[position + 3] || 0
   memory[parameter3] = parameter1 + parameter2
   return position + 4
 }
 
-function multiplyValues ({ memory, position, mode1, mode2, mode3, base }) {
+function multiplyValues ({ memory, position, mode1, mode2, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
+  const parameter3 = memory[position + 3] || 0
   memory[parameter3] = parameter1 * parameter2
   return position + 4
 }
 
-function saveInputToPosition ({ id, memory, position, inputs, outputs, mode1, base }) {
-  const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
+function saveInputToPosition ({ id, memory, position, inputs, outputs }) {
+  const parameter1 = memory[position + 1] || 0
   const input = inputs.shift()
   if (input !== undefined) {
     // report(id, 'Read input', input, inputs, outputs)
@@ -61,7 +83,7 @@ function saveInputToPosition ({ id, memory, position, inputs, outputs, mode1, ba
 function outputValue ({ id, memory, position, inputs, outputs, mode1, outputSignal, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   outputs.push(parameter1)
-  report(id, 'Output value', parameter1, inputs, outputs)
+  // report(id, 'Output value', parameter1, inputs, outputs)
   outputSignal(parameter1)
   return position + 2
 }
@@ -87,7 +109,7 @@ function jumpIfFalse ({ memory, position, mode1, mode2, base }) {
 function lessThan ({ memory, position, mode1, mode2, mode3, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
+  const parameter3 = memory[position + 3] || 0
   if (parameter1 < parameter2) {
     memory[parameter3] = 1
   } else {
@@ -96,10 +118,10 @@ function lessThan ({ memory, position, mode1, mode2, mode3, base }) {
   return position + 4
 }
 
-function equals ({ memory, position, mode1, mode2, mode3, base }) {
+function equals ({ memory, position, mode1, mode2, base }) {
   const parameter1 = getParameter({ memory, mode: mode1, parameter: memory[position + 1], base })
   const parameter2 = getParameter({ memory, mode: mode2, parameter: memory[position + 2], base })
-  const parameter3 = getParameter({ memory, mode: mode3, parameter: memory[position + 3], base })
+  const parameter3 = memory[position + 3] || 0
   if (parameter1 === parameter2) {
     memory[parameter3] = 1
   } else {
@@ -120,12 +142,14 @@ function endProgram () {
 
 function executeProgram ({ id, memory, position, inputs, outputs, outputSignal, base }) {
   const instruction = (memory[position] + '').split('')
+  // report('Instruction', instruction)
   const opcode = Number.parseInt([instruction.pop(), instruction.pop()].reverse().join(''))
   const mode1 = Number.parseInt(instruction.pop() || 0)
   const mode2 = Number.parseInt(instruction.pop() || 0)
   const mode3 = Number.parseInt(instruction.pop() || 0)
 
   try {
+    // report('Opcode', opcode, `[${opcodeNames[opcode]}]`, 'at', position, 'Modes:', mode1, mode2, mode3, 'Memory:', memory.join(', '), 'Keys:', Object.keys(memory).join(', '))
     return opcodes[opcode]({ id, memory, position, inputs, outputs, mode1, mode2, mode3, outputSignal, base })
   } catch (ex) {
     report('Unable to execute instruction at', position, `(Opcode: ${opcode}, Modes: 1:${mode1}, 2:${mode2}, 3:${mode3})`, `[${memory[position]}]`, 'memory dump:', memory.join(' '))
