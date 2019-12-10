@@ -1,5 +1,5 @@
 const path = require('path')
-const { read, position } = require('promise-path')
+const { read, write, position } = require('promise-path')
 const fromHere = position(__dirname)
 const report = (...messages) => console.log(`[${require(fromHere('../../package.json')).logName} / ${__dirname.split(path.sep).pop()}]`, ...messages)
 
@@ -44,7 +44,6 @@ function mapAsteroidsFrom (asteroids, start) {
     const vx = dx > 0 ? 1 : -1
     const vy = dy > 0 ? 1 : -1
     const vector = { x, y, dx, dy, d, angle, vx, vy }
-    report(x, y, ':', angle)
     return vector
   })
 
@@ -62,12 +61,17 @@ function mapAsteroidsFrom (asteroids, start) {
   start.vectors = vectors
   start.visibleAsteroids = Array.from(visibleAsteroids)
 
+  return start
+}
+
+async function outputAsteroidMap (asteroids, visibleAsteroids, start) {
   const dimensions = {
-    left: Math.min(...start.visibleAsteroids.map(n => n.x)),
-    right: Math.max(...start.visibleAsteroids.map(n => n.x)),
-    top: Math.min(...start.visibleAsteroids.map(n => n.y)),
-    bottom: Math.max(...start.visibleAsteroids.map(n => n.y))
+    left: Math.min(...asteroids.map(n => n.x)),
+    right: Math.max(...asteroids.map(n => n.x)),
+    top: Math.min(...asteroids.map(n => n.y)),
+    bottom: Math.max(...asteroids.map(n => n.y))
   }
+
   report('Dimensions:', dimensions)
   const index = {}
   asteroids.map((a) => {
@@ -76,6 +80,7 @@ function mapAsteroidsFrom (asteroids, start) {
   start.visibleAsteroids.map((a) => {
     index[`${a.x},${a.y}`] = a
   })
+
   index[`${start.x},${start.y}`] = start
   const map = []
   for (let j = dimensions.top; j < dimensions.bottom; j++) {
@@ -89,9 +94,9 @@ function mapAsteroidsFrom (asteroids, start) {
     }
     map.push(line)
   }
-  console.log(map.map(n => n.join('')).join('\n'))
-
-  return start
+  const output = map.map(n => n.join(' ')).join('\n')
+  console.log(output)
+  return write(fromHere('output.txt'), output, 'utf8')
 }
 
 async function solveForFirstStar (input) {
@@ -101,6 +106,8 @@ async function solveForFirstStar (input) {
   const bestLocation = research.sort((a, b) => {
     return b.visibleAsteroids.length - a.visibleAsteroids.length
   })[0]
+
+  await outputAsteroidMap(asteroids, bestLocation.visibleAsteroids, bestLocation)
 
   const solution = bestLocation.visibleAsteroids.length
   report('Solution 1:', solution, { x: bestLocation.x, y: bestLocation.y })
