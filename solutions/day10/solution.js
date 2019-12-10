@@ -4,7 +4,7 @@ const fromHere = position(__dirname)
 const report = (...messages) => console.log(`[${require(fromHere('../../package.json')).logName} / ${__dirname.split(path.sep).pop()}]`, ...messages)
 
 async function run () {
-  const input = (await read(fromHere('example.txt'), 'utf8')).trim()
+  const input = (await read(fromHere('input.txt'), 'utf8')).trim()
   await solveForFirstStar(input)
   await solveForSecondStar(input)
 }
@@ -40,23 +40,24 @@ function mapAsteroidsFrom (asteroids, start) {
     const dx = location.x - start.x
     const dy = location.y - start.y
     const d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2))
-    const v = dx / dy
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI
     const vx = dx > 0 ? 1 : -1
     const vy = dy > 0 ? 1 : -1
-    const vector = { x, y, dx, dy, d, v, vx, vy }
+    const vector = { x, y, dx, dy, d, angle, vx, vy }
+    report(x, y, ':', angle)
     return vector
   })
 
-  const visibleAsteroids = new Set(vectors.filter(start => {
+  const angles = Array.from(new Set(vectors.map(v => v.angle)))
+
+  const visibleAsteroids = angles.map(angle => {
     const searchSpace = [].concat(vectors)
-      .filter(n => n.vx === start.vx && n.vy === start.vy && n.v === start.v)
-      .filter(n => !(n.x === start.x && n.y === start.y))
+      .filter(n => n.angle === angle)
       .sort((a, b) => {
-        return b.d - a.d
+        return a.d - b.d
       })
-    report('Start', start.x, start.y, ':', JSON.stringify(searchSpace))
     return searchSpace[0]
-  }))
+  })
 
   start.vectors = vectors
   start.visibleAsteroids = Array.from(visibleAsteroids)
@@ -88,7 +89,6 @@ function mapAsteroidsFrom (asteroids, start) {
     }
     map.push(line)
   }
-  report(start.visibleAsteroids)
   console.log(map.map(n => n.join('')).join('\n'))
 
   return start
@@ -96,9 +96,7 @@ function mapAsteroidsFrom (asteroids, start) {
 
 async function solveForFirstStar (input) {
   const asteroids = parseAsteroidMap(input)
-  // const research = asteroids.map(position => mapAsteroidsFrom(asteroids, position))
-
-  const research = [mapAsteroidsFrom(asteroids, asteroids.filter(n => n.x === 11 && n.y === 13)[0])]
+  const research = asteroids.map(position => mapAsteroidsFrom(asteroids, position))
 
   const bestLocation = research.sort((a, b) => {
     return b.visibleAsteroids.length - a.visibleAsteroids.length
