@@ -64,7 +64,7 @@ function mapAsteroidsFrom (asteroids, start) {
   return start
 }
 
-async function outputAsteroidMap (asteroids, visibleAsteroids, start) {
+async function outputAsteroidMap (filename, asteroids, visibleAsteroids, start) {
   const dimensions = {
     left: Math.min(...asteroids.map(n => n.x)),
     right: Math.max(...asteroids.map(n => n.x)),
@@ -90,13 +90,14 @@ async function outputAsteroidMap (asteroids, visibleAsteroids, start) {
       let symbol = asteroid ? 'x' : '.'
       if (asteroid === start) { symbol = 'R' }
       if (start.visibleAsteroids.includes(asteroid)) { symbol = 'o' }
+      if (asteroid.destroyed) { symbol = ' ' }
       line.push(symbol)
     }
     map.push(line)
   }
   const output = map.map(n => n.join(' ')).join('\n')
   console.log(output)
-  return write(fromHere('output.txt'), output, 'utf8')
+  return write(fromHere(filename), output, 'utf8')
 }
 
 async function solveForFirstStar (input) {
@@ -107,7 +108,7 @@ async function solveForFirstStar (input) {
     return b.visibleAsteroids.length - a.visibleAsteroids.length
   })[0]
 
-  await outputAsteroidMap(asteroids, bestLocation.visibleAsteroids, bestLocation)
+  await outputAsteroidMap('output1.txt', asteroids, bestLocation.visibleAsteroids, bestLocation)
 
   const solution = bestLocation.visibleAsteroids.length
   report('Solution 1:', solution, { x: bestLocation.x, y: bestLocation.y })
@@ -148,6 +149,8 @@ async function solveForSecondStar ({ asteroids, visibleAsteroids, researchStatio
       destroyedAsteroids.push(nearestAsteroid)
     }
   }
+
+  await outputAsteroidMap('output2.txt', asteroids, researchStation.visibleAsteroids, researchStation)
 
   const asteroid = destroyedAsteroids[200 - 1]
   const solution = (asteroid.x * 100) + asteroid.y
