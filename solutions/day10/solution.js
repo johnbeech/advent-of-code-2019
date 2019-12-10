@@ -5,8 +5,8 @@ const report = (...messages) => console.log(`[${require(fromHere('../../package.
 
 async function run () {
   const input = (await read(fromHere('input.txt'), 'utf8')).trim()
-  await solveForFirstStar(input)
-  await solveForSecondStar(input)
+  const { asteroids, visibleAsteroids, researchStation } = await solveForFirstStar(input)
+  await solveForSecondStar({ asteroids, visibleAsteroids, researchStation })
 }
 
 function parseAsteroidMap (input) {
@@ -111,11 +111,47 @@ async function solveForFirstStar (input) {
 
   const solution = bestLocation.visibleAsteroids.length
   report('Solution 1:', solution, { x: bestLocation.x, y: bestLocation.y })
+
+  return {
+    asteroids,
+    visibleAsteroids: bestLocation.visibleAsteroids,
+    researchStation: bestLocation
+  }
 }
 
-async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
-  report('Solution 2:', solution)
+async function solveForSecondStar ({ asteroids, visibleAsteroids, researchStation }) {
+  const { vectors } = researchStation
+  const angles = Array.from(new Set(
+    vectors.filter(n => n !== researchStation)
+      .map(v => v.angle))
+  ).sort((a, b) => {
+    const aa = (a + 360 + 90) % 360
+    const ab = (b + 360 + 90) % 360
+    return aa - ab
+  })
+
+  const destroyedAsteroids = []
+  while (destroyedAsteroids.length < 200) {
+    const i = destroyedAsteroids.length
+    const angle = angles[i % angles.length]
+    const searchSpace = [].concat(vectors)
+      .filter(n => n.angle === angle)
+      .filter(n => !n.destroyed)
+      .sort((a, b) => {
+        return a.d - b.d
+      })
+
+    const nearestAsteroid = searchSpace[0]
+    if (nearestAsteroid) {
+      report('Found asteroid at', angle, { x: nearestAsteroid.x, y: nearestAsteroid.y })
+      nearestAsteroid.destroyed = true
+      destroyedAsteroids.push(nearestAsteroid)
+    }
+  }
+
+  const asteroid = destroyedAsteroids[200 - 1]
+  const solution = (asteroid.x * 100) + asteroid.y
+  report('Solution 2:', solution, asteroid)
 }
 
 run()
