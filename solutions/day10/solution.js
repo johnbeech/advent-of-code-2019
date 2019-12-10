@@ -10,9 +10,34 @@ async function run () {
   await solveForSecondStar(input)
 }
 
+function parseAsteroidMap (input) {
+  const asteroids = []
+  const lines = input.split('\n')
+  const height = lines.length
+  while (lines.length > 0) {
+    const y = height - lines.length
+    const line = lines.shift()
+    const width = line.length
+    const positions = line.trim().split('')
+    const asteroid = {}
+    while (positions.length > 0) {
+      const x = width - line.length
+      const value = positions.shift()
+      if (value === '#') {
+        asteroid.x = x
+        asteroid.y = y
+        asteroids.push(asteroid)
+      }
+    }
+  }
+  return asteroids
+}
+
 async function solveForFirstStar (input) {
+  const asteroids = parseAsteroidMap(input)
+
   const solution = 'UNSOLVED'
-  report('Input:', input)
+  report('Asteroids:', asteroids)
   report('Solution 1:', solution)
 }
 
