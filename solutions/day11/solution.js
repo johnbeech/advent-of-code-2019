@@ -20,7 +20,7 @@ async function run () {
 }
 
 async function solveForFirstStar (instructions) {
-  const paintedPanels = {}
+  const paintedPanels = { '0,0': 0 }
   const position = { x: 0, y: 0 }
   let facing = 0
 
