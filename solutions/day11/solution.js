@@ -6,9 +6,9 @@ const report = (...messages) => console.log(`[${require(fromHere('../../package.
 const compute = require('./intcode')
 
 const NESW = [
-  { x: 0, y: 1 },
-  { x: 1, y: 0 },
   { x: 0, y: -1 },
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
   { x: -1, y: 0 }
 ]
 
@@ -35,17 +35,18 @@ async function outputPaintMap (filename, index) {
 
   report('Dimensions:', dimensions)
   const map = []
-  for (let j = dimensions.top; j < dimensions.bottom; j++) {
+  for (let j = dimensions.top - 1; j < dimensions.bottom + 1; j++) {
     const line = []
-    for (let i = dimensions.left; i < dimensions.right; i++) {
+    for (let i = dimensions.left - 1; i < dimensions.right + 1; i++) {
       const position = index[`${i},${j}`]
-      const symbol = position !== undefined ? position : '.'
+      const symbol = position ? '#' : ' '
       line.push(symbol)
     }
     map.push(line)
   }
-  const output = map.map(n => n.join('')).join('\n')
-  return write(fromHere(filename), output, 'utf8')
+  const output = map.map(n => n.join(' ')).join('\n')
+  await write(fromHere(filename), output, 'utf8')
+  return output
 }
 
 async function solveForFirstStar (instructions) {
@@ -68,10 +69,43 @@ async function solveForFirstStar (instructions) {
       position.y = position.y + direction.y
 
       // report('Paint', color ? 'W' : 'B', 'Turn', turn ? 'R' : 'L', 'to', 'NESW'.charAt(facing))
+    }
+  }
 
-      if (Object.keys(paintedPanels).length === 200) {
-        outputPaintMap('output.txt', paintedPanels)
-      }
+  function inputSignal (inputs) {
+    const key = `${position.x},${position.y}`
+    inputs.push(paintedPanels[key] || 0)
+  }
+
+  report('Solving part 1...', '[computing]')
+
+  await compute({ instructions, inputs: [], outputs: [], outputSignal, inputSignal })
+
+  const solution = Object.values(paintedPanels).length
+  report('Input:', instructions)
+  report('Solution 1:', solution)
+}
+
+async function solveForSecondStar (instructions) {
+  const paintedPanels = { '0,0': 1 }
+  const position = { x: 0, y: 0 }
+  let rotation = 0
+
+  function outputSignal (value, outputs) {
+    if (outputs.length >= 2) {
+      const color = outputs.shift()
+      const turn = outputs.shift() ? 1 : -1
+
+      const key = `${position.x},${position.y}`
+      paintedPanels[key] = color
+
+      rotation = (rotation + turn)
+      const facing = ((rotation % NESW.length) + NESW.length) % NESW.length
+      const direction = NESW[facing]
+      position.x = position.x + direction.x
+      position.y = position.y + direction.y
+
+      // report('Paint', color ? 'W' : 'B', 'Turn', turn ? 'R' : 'L', 'to', 'NESW'.charAt(facing))
     }
   }
 
@@ -82,14 +116,10 @@ async function solveForFirstStar (instructions) {
 
   await compute({ instructions, inputs: [], outputs: [], outputSignal, inputSignal })
 
-  const solution = Object.values(paintedPanels).length
-  report('Input:', instructions)
-  report('Solution 1:', solution)
-}
+  report('Solving part 2...', '[computing]')
 
-async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
-  report('Solution 2:', solution)
+  const solution = await outputPaintMap('output.txt', paintedPanels)
+  report('Solution 2:', '\n', solution)
 }
 
 run()
