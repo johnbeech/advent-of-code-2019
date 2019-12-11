@@ -1,5 +1,5 @@
 const path = require('path')
-const { read, position } = require('promise-path')
+const { read, write, position } = require('promise-path')
 const fromHere = position(__dirname)
 const report = (...messages) => console.log(`[${require(fromHere('../../package.json')).logName} / ${__dirname.split(path.sep).pop()}]`, ...messages)
 
@@ -19,23 +19,59 @@ async function run () {
   await solveForSecondStar(input)
 }
 
+async function outputPaintMap (filename, index) {
+  const points = Object.keys(index)
+    .map(k => k.split(',').map(n => Number.parseInt(n)))
+    .map(k => {
+      return { x: k[0], y: k[1] }
+    })
+
+  const dimensions = {
+    left: Math.min(...points.map(n => n.x)),
+    right: Math.max(...points.map(n => n.x)),
+    top: Math.min(...points.map(n => n.y)),
+    bottom: Math.max(...points.map(n => n.y))
+  }
+
+  report('Dimensions:', dimensions)
+  const map = []
+  for (let j = dimensions.top; j < dimensions.bottom; j++) {
+    const line = []
+    for (let i = dimensions.left; i < dimensions.right; i++) {
+      const position = index[`${i},${j}`]
+      const symbol = position !== undefined ? position : '.'
+      line.push(symbol)
+    }
+    map.push(line)
+  }
+  const output = map.map(n => n.join('')).join('\n')
+  return write(fromHere(filename), output, 'utf8')
+}
+
 async function solveForFirstStar (instructions) {
   const paintedPanels = { '0,0': 0 }
   const position = { x: 0, y: 0 }
-  let facing = 0
+  let rotation = 0
 
   function outputSignal (value, outputs) {
     if (outputs.length >= 2) {
       const color = outputs.shift()
-      const turn = outputs.shift()
+      const turn = outputs.shift() ? 1 : -1
 
       const key = `${position.x},${position.y}`
       paintedPanels[key] = color
 
-      facing = (facing + turn + NESW.length) % NESW.length
+      rotation = (rotation + turn)
+      const facing = ((rotation % NESW.length) + NESW.length) % NESW.length
       const direction = NESW[facing]
       position.x = position.x + direction.x
       position.y = position.y + direction.y
+
+      // report('Paint', color ? 'W' : 'B', 'Turn', turn ? 'R' : 'L', 'to', 'NESW'.charAt(facing))
+
+      if (Object.keys(paintedPanels).length === 200) {
+        outputPaintMap('output.txt', paintedPanels)
+      }
     }
   }
 
