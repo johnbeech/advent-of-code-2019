@@ -33,9 +33,9 @@ function stepOrbits (startOrbits) {
   resultOrbits.forEach((orbit, index) => {
     function calculateDX (prop) {
       return (n) => {
-        if (n[prop] > orbit[prop]) {
+        if (n[prop] < orbit[prop]) {
           return -1
-        } else if (n[prop] < orbit[prop]) {
+        } else if (n[prop] > orbit[prop]) {
           return 1
         } else {
           return 0
@@ -54,20 +54,20 @@ function stepOrbits (startOrbits) {
     orbit.y += orbit.dy
     orbit.z += orbit.dz
 
-    orbit.kinetic = orbit.dx + orbit.dy + orbit.dz
-    orbit.potential = orbit.x + orbit.y + orbit.z
+    orbit.kinetic = Math.abs(orbit.dx) + Math.abs(orbit.dy) + Math.abs(orbit.dz)
+    orbit.potential = Math.abs(orbit.x) + Math.abs(orbit.y) + Math.abs(orbit.z)
     orbit.total = orbit.kinetic * orbit.potential
   })
 
   return resultOrbits
 }
 
-async function solveForFirstStar (input) {
+async function solveForFirstStar (input, stepCount = 1000) {
   const orbits = parseOrbits(input)
 
   const steps = []
   let lastStep = orbits
-  while (steps.length < 1000) {
+  while (steps.length < stepCount) {
     lastStep = stepOrbits(lastStep)
     steps.push(lastStep)
   }
@@ -75,6 +75,7 @@ async function solveForFirstStar (input) {
   const solution = sum(lastStep.map(n => n.total))
 
   report('Input:', orbits)
+  report('Output:', lastStep)
   report('Solution 1:', solution)
 }
 
