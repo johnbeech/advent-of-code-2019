@@ -53,17 +53,13 @@ async function ouputPoints (filename, index) {
 
 async function solveForFirstStar (instructions) {
   const screen = {}
-  let step = 0
   function outputSignal (value, outputs) {
-    report(outputs)
     if (outputs.length === 3) {
       const x = outputs.shift()
       const y = outputs.shift()
       const tileId = outputs.shift()
       const key = `${x},${y}`
       screen[key] = tileId
-      step++
-      report('Step', step, `${x},${y}`, (tileTypes[tileId] || tileTypes[99]).symbol)
     }
   }
 
@@ -71,7 +67,8 @@ async function solveForFirstStar (instructions) {
 
   const solution = Object.values(screen).filter(n => n === 2).length
 
-  ouputPoints('screen.txt', screen)
+  const render = await ouputPoints('screen.txt', screen)
+  console.log(render)
 
   report('Solution 1:', solution)
 }
