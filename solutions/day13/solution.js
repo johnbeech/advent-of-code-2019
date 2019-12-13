@@ -74,7 +74,53 @@ async function solveForFirstStar (instructions) {
 }
 
 async function solveForSecondStar (input) {
-  const solution = 'UNSOLVED'
+  const screen = {}
+  let score = 0
+  const ball = { x: 0, y: 0 }
+  const paddle = { x: 0, y: 0 }
+  function outputSignal (value, outputs) {
+    if (outputs.length === 3) {
+      const x = outputs.shift()
+      const y = outputs.shift()
+      const value = outputs.shift()
+
+      if (x === -1 && y === 0) {
+        score = value
+      } else {
+        if (value === 4) {
+          ball.x = x
+          ball.y = y
+        }
+        if (value === 3) {
+          paddle.x = x
+          paddle.y = y
+        }
+        const key = `${x},${y}`
+        screen[key] = value
+      }
+    }
+  }
+
+  function inputSignal () {
+    if (paddle.x < ball.x) {
+      inputs.push(1)
+    } else if (paddle.x > ball.x) {
+      inputs.push(-1)
+    } else {
+      inputs.push(0)
+    }
+  }
+
+  const inputs = []
+  const instructions = input.split(',')
+  instructions[0] = 2
+  await compute({ instructions: instructions.join(','), inputs, outputSignal, inputSignal })
+
+  const render = await ouputPoints('screen.txt', screen)
+  console.log(render)
+
+  const solution = score
+
   report('Solution 2:', solution)
 }
 
