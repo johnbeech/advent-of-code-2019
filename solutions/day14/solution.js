@@ -26,8 +26,7 @@ function buildNanoFactory (setup) {
     const output = parseQuantityPair(right)
     return {
       inputs,
-      output,
-      process
+      output
     }
   })
 
@@ -56,10 +55,29 @@ function buildNanoFactory (setup) {
 async function solveForFirstStar (input) {
   const factory = buildNanoFactory(input)
 
-  report('Factory', factory)
+  function calculateRequirements (factory, process, amount = 1) {
+    const stack = []
+    report('Consume', process.inputs.map(n => `${n.amount * amount} ${n.type}`).join(', '), 'to produce', amount * process.output.amount, process.output.type)
+    process.inputs.forEach(input => {
+      if (input.type === 'ORE') {
+        stack.push({
+          type: input.type,
+          amount: input.amount * amount
+        })
+      } else {
+        const tree = calculateRequirements(factory, factory.outputMap[input.type], input.amount * amount)
+        tree.forEach(t => {
+          stack.push(t)
+        })
+      }
+    })
+    return stack
+  }
+
+  const requirements = calculateRequirements(factory, factory.outputMap.FUEL, 1)
+  report('Requirements', requirements)
 
   const solution = 'UNSOLVED'
-  report('Input:', input)
   report('Solution 1:', solution)
 }
 
