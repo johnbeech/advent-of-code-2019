@@ -63,42 +63,56 @@ function buildNanoFactory (setup) {
 async function solveForFirstStar (input) {
   const factory = buildNanoFactory(input)
 
-  function produce (factory, process, quantityRequired = 1, stack = {}) {
+  function produce (factory, process, quantityRequired = 1, stack = {}, total = {}) {
     const { inputs, output } = process
     const { type, amount } = output
     stack[type] = stack[type] || 0
+    total[type] = total[type] || 0
 
     if (type === 'ORE') {
-      report('Produce', quantityRequired, 'of', type, ':', JSON.stringify(stack))
       stack[type] = stack[type] + quantityRequired
-      return
+      total[type] = total[type] + quantityRequired
+      report('Produced', quantityRequired, 'of', type, ':', JSON.stringify(stack))
     } else {
       report('Producing', amount, 'of', type)
+
+      const usage = inputs.reduce((acc, input) => {
+        acc[input.type] = input.amount
+        return acc
+      }, {})
+
+      inputs.forEach(input => {
+        stack[input.type] = stack[input.type] || 0
+        report('Expecting', usage[input.type], 'of', input.type)
+        while (usage[input.type] > 0) {
+          let amountAvailable = Math.min(stack[input.type], usage[input.type])
+          if (amountAvailable === 0) {
+            const supportedProcess = factory.outputMap[input.type]
+            produce(factory, supportedProcess, 1, stack, total)
+          }
+          amountAvailable = Math.min(stack[input.type], usage[input.type])
+          usage[input.type] = usage[input.type] - amountAvailable
+          stack[input.type] = stack[input.type] - amountAvailable
+          report('Consumed ', amountAvailable, 'of', input.type, JSON.stringify(stack), JSON.stringify(usage))
+        }
+      })
+
+      stack[type] = stack[type] + amount
+      total[type] = total[type] + amount
+      report('Produced', amount, 'of', type, ':', JSON.stringify(stack))
     }
 
-    inputs.forEach(input => {
-      stack[input.type] = stack[input.type] || 0
-      while (stack[input.type] < input.amount * quantityRequired) {
-        const supportedProcess = factory.outputMap[input.type]
-        produce(factory, supportedProcess, input.amount, stack)
-      }
-    })
-
-    inputs.forEach(input => {
-      report('Consume', input.amount, 'of', input.type)
-      stack[input.type] = stack[input.type] - input.amount
-    })
-
-    report('Produce', amount, 'of', type, ':', JSON.stringify(stack))
-    stack[type] = stack[type] + amount
-
-    return stack
+    return {
+      stack,
+      total
+    }
   }
 
-  const requirements = produce(factory, factory.outputMap.FUEL, 1)
-  report('Requirements', requirements)
+  const { stack, total } = produce(factory, factory.outputMap.FUEL, 1)
+  report('Stack', stack)
+  report('Totals', total)
 
-  const solution = 'UNSOLVED'
+  const solution = total.ORE
   report('Solution 1:', solution)
 }
 
