@@ -4,7 +4,7 @@ const fromHere = position(__dirname)
 const report = (...messages) => console.log(`[${require(fromHere('../../package.json')).logName} / ${__dirname.split(path.sep).pop()}]`, ...messages)
 
 async function run () {
-  const input = (await read(fromHere('example.txt'), 'utf8')).trim()
+  const input = (await read(fromHere('input.txt'), 'utf8')).trim()
 
   await solveForFirstStar(input)
   await solveForSecondStar(input)
@@ -72,9 +72,9 @@ async function solveForFirstStar (input) {
     if (type === 'ORE') {
       stack[type] = stack[type] + quantityRequired
       total[type] = total[type] + quantityRequired
-      report('Produced', quantityRequired, 'of', type, ':', JSON.stringify(stack))
+      // report('Produced', quantityRequired, 'of', type, ':', JSON.stringify(stack))
     } else {
-      report('Producing', amount, 'of', type)
+      // report('Producing', amount, 'of', type)
 
       const usage = inputs.reduce((acc, input) => {
         acc[input.type] = input.amount
@@ -83,7 +83,6 @@ async function solveForFirstStar (input) {
 
       inputs.forEach(input => {
         stack[input.type] = stack[input.type] || 0
-        report('Expecting', usage[input.type], 'of', input.type)
         while (usage[input.type] > 0) {
           let amountAvailable = Math.min(stack[input.type], usage[input.type])
           if (amountAvailable === 0) {
@@ -93,13 +92,13 @@ async function solveForFirstStar (input) {
           amountAvailable = Math.min(stack[input.type], usage[input.type])
           usage[input.type] = usage[input.type] - amountAvailable
           stack[input.type] = stack[input.type] - amountAvailable
-          report('Consumed ', amountAvailable, 'of', input.type, JSON.stringify(stack), JSON.stringify(usage))
+          // report('Consumed ', amountAvailable, 'of', input.type, JSON.stringify(stack), JSON.stringify(usage))
         }
       })
 
       stack[type] = stack[type] + amount
       total[type] = total[type] + amount
-      report('Produced', amount, 'of', type, ':', JSON.stringify(stack))
+      // report('Produced', amount, 'of', type, ':', JSON.stringify(stack))
     }
 
     return {
