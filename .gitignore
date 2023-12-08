@@ -2,3 +2,9 @@ node_modules
 package-lock.json
 **/jquery-2.1.1.min.js
 solutions/day15/steps/*
+
+input.txt
+
+example.txt
+
+tes*.txt
